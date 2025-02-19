@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
+import ChatSelector from "./components/model.jsx";
+import ollama from "ollama";
 
 const saveChatToLocalStorage = (chat) => {
 	const existingChats = JSON.parse(localStorage.getItem("chats")) || [];
@@ -10,53 +12,11 @@ function App() {
 	const [prompt, setPrompt] = useState("");
 	const [messages, setMessages] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const [streamReader, setStreamReader] = useState(null);
+	const [abortController, setAbortController] = useState(null);
 	const [chat, setChat] = useState("qwen2.5:1.5b");
 
 	const textareaRef = useRef(null);
 	const chatContainerRef = useRef(null);
-
-	const handleOutputStream = async (reader) => {
-		const decoder = new TextDecoder("utf-8");
-		let buffer = "";
-		let assistantMessage = "";
-
-		while (true) {
-			const { done, value } = await reader.read();
-			if (done) break;
-
-			buffer += decoder.decode(value, { stream: true });
-			const lines = buffer.split("\n");
-
-			for (let i = 0; i < lines.length - 1; i++) {
-				const line = lines[i].trim();
-				if (!line) continue;
-
-				try {
-					const parsed = JSON.parse(line);
-					// For the chat endpoint, the streaming token is in parsed.message.content
-					assistantMessage += parsed.message.content;
-					setMessages((prev) => {
-						const last = prev[prev.length - 1];
-						if (last?.role === "assistant") {
-							return [
-								...prev.slice(0, -1),
-								{ ...last, content: assistantMessage },
-							];
-						}
-						return prev;
-					});
-					if (parsed.done) {
-						reader.cancel();
-						break;
-					}
-				} catch (err) {
-					console.error("JSON parse error:", line, err);
-				}
-			}
-			buffer = lines[lines.length - 1];
-		}
-	};
 
 	const handleSubmit = async (e) => {
 		e && e.preventDefault();
@@ -66,120 +26,84 @@ function App() {
 		const newUserMessage = { role: "user", content: currentPrompt };
 		const conversationToSend = [...messages, newUserMessage];
 
-		// Update UI: add the user message...
 		setIsLoading(true);
-		setMessages(conversationToSend); // ...and add an assistant placeholder (not sent to the API)
+		setMessages(conversationToSend);
 		setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 		setPrompt("");
 
+		const controller = new AbortController();
+		setAbortController(controller);
+
 		let assistantMessage = "";
 		try {
-			const res = await fetch("http://localhost:11434/api/chat", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				// IMPORTANT: the request body now includes the "messages" array that ends with a user message.
-				body: JSON.stringify({
-					model: chat,
-					messages: conversationToSend,
-				}),
+			const response = await ollama.chat({
+				model: chat,
+				messages: conversationToSend,
+				stream: true,
+				options: {
+					signal: controller.signal,
+				},
 			});
 
-			if (!res.ok)
-				throw new Error(
-					`Server error: ${res.status} ${res.statusText}`
-				);
-			if (!res.body)
-				throw new Error("Streaming not supported or no body returned.");
-			const reader = res.body.getReader();
-			setStreamReader(reader);
-			await handleOutputStream(reader);
+			for await (const part of response) {
+				assistantMessage += part.message?.content || "";
+				setMessages((prev) => {
+					const last = prev[prev.length - 1];
+					if (last?.role === "assistant") {
+						return [
+							...prev.slice(0, -1),
+							{ ...last, content: assistantMessage },
+						];
+					}
+					return prev;
+				});
+			}
 		} catch (error) {
-			console.error("Error:", error);
-			setMessages((prev) => [
-				...prev,
-				{ role: "assistant", content: `Error: ${error.message}` },
-			]);
+			if (error.name !== "AbortError") {
+				console.error("Error:", error);
+				setMessages((prev) => [
+					...prev,
+					{ role: "assistant", content: `Error: ${error.message}` },
+				]);
+			}
 		} finally {
 			setIsLoading(false);
+			setAbortController(null);
 			const chatId = new Date().toISOString();
-			// Save the chat with the full conversation:
-			const chatObject = {
+			saveChatToLocalStorage({
 				id: chatId,
 				heading: currentPrompt,
-				// Here we save the conversation including the streaming assistant message
 				messages: [
 					...conversationToSend,
 					{ role: "assistant", content: assistantMessage },
 				],
-			};
-			saveChatToLocalStorage(chatObject);
+			});
 		}
 	};
 
 	const handleCancelStream = () => {
-		if (streamReader) {
-			streamReader.cancel();
-			setStreamReader(null);
+		if (abortController) {
+			abortController.abort();
+			setAbortController(null);
+			setIsLoading(false);
 		}
-		setIsLoading(false);
 	};
 
-	const changeChat = (e) => {
-		e.preventDefault();
-		setChat(e.target.textContent);
-	};
 	useEffect(() => {
 		const handleKeyDown = (event) => {
 			if ((event.ctrlKey || event.metaKey) && event.key === "c") {
 				handleCancelStream();
 			}
 		};
-		document.addEventListener("keydown", handleKeyDown); // Add global event listener
-		return () => {
-			document.removeEventListener("keydown", handleKeyDown); // Cleanup on unmount
-		};
-	}, [handleCancelStream]);
-
-	// useEffect(() => {
-	// 	if (dummyRef.current) {
-	// 		dummyRef.current.scrollIntoView({ behavior: "smooth" });
-	// 	}
-	// }, [messages]);
-
-	// Refactored chat buttons to remove repetition
-	const chatOptions = [
-		{ model: "qwen2.5-coder:1.5b" },
-		{ model: "deepscaler:latest" },
-		{ model: "llama3.2:1b" },
-		{ model: "deepseek-r1:1.5b" },
-		{ model: "qwen2.5:1.5b" },
-	];
-
-	const chatMap = new Map([
-		["qwen2.5-coder:1.5b", "qwen2.5-coder"],
-		["deepscaler:latest", "deepscaler"],
-		["llama3.2:1b", "llama3.2"],
-		["deepseek-r1:1.5b", "deepseek-r1"],
-		["qwen2.5:1.5b", "qwen2.5"],
-	]);
-	console.log(chatMap);
+		document.addEventListener("keydown", handleKeyDown);
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, [abortController]);
 
 	return (
 		<div className="flex flex-col flex-1 gap-2">
 			<div className="overflow-hidden top-0 flex-1 mb-36">
-				<div className="flex flex-row gap-4 justify-center mt-2 mb-2">
-					{chatOptions.map(({ model }) => (
-						<button
-							key={model}
-							onClick={changeChat}
-							className={` p-2 px-4 text-gray-900 bg-gray-50 cursor-pointer rounded-xl hover:bg-gray-200 ${
-								chat === model ? "bg-gray-200" : ""
-							}`}
-						>
-							{model}
-						</button>
-					))}
-				</div>
+				<ChatSelector chat={chat} setChat={setChat} />
+
 				<div className="flex flex-col p-4 min-w-[700px] border border-gray-200 mx-auto rounded-xl w-[50%] bg-white h-full">
 					<div
 						ref={chatContainerRef}
