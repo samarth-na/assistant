@@ -54,16 +54,17 @@ npm run dev
 - [ ] adding shadcn library
 - [ ] adding drizzle kit
 - [ ] add database neon
+- [ ] test
 
 ## to do
 
 - [ ] add MD rendering with mdx
 - [ ] add message stats and ui
 - [ ] add chats history sidebar and option to switch
-- [ ] add darkmode and option to switch
+- [ ] add dark mode and option to switch
 - [ ] add authentication
 - [ ] add options
-    - [ ] temprature
+    - [ ] temperature
     - [ ] system prompt
 - [ ] host on ampere A1
 
@@ -73,11 +74,13 @@ npm run dev
 - [x] add chat history
 - [x] add options to switch chat models
 - [x] create chat interface
+- [x] migrated to ollama npm package
 
 ---
 
 > these are the tasks for initial design my actual aim is for it be an
-> assistant such as google's ,siri and such but an acutual useable like setting
-> up timers event on calendar reading the messages and such it needs alot more
-> capabilites for that to which i hope i can accomplish im making this for
+> assistant such as google's ,siri and such but an actual usable like setting
+> up timers event on calendar reading the messages and such it needs a lot more
+> capabilities for that to which I hope I can accomplish I'm making this for
 > myself first and foremost not to turn this into an start-up
+
