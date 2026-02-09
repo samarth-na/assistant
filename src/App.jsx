@@ -215,7 +215,7 @@ function App() {
       {/* Main content */}
       <div className="flex-1 min-w-0 flex flex-col h-full">
         {/* Top bar */}
-        <div className="flex items-center gap-4 px-5 h-12 border-b border-slate-200 dark:border-slate-700">
+        <div className="flex items-center gap-4 px-5 h-12 border-b border-slate-200 dark:border-transparent">
           <button
             onClick={() => setSidebarOpen((o) => !o)}
             className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer transition-colors duration-150"
@@ -242,7 +242,7 @@ function App() {
           {/* Dark mode toggle */}
           <button
             onClick={() => setDarkMode((d) => !d)}
-            className="ml-auto pl-4 border-l border-slate-200 dark:border-slate-700
+            className="ml-auto pl-4 border-l border-slate-200 dark:border-transparent
               font-mono text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200
               cursor-pointer transition-colors duration-150 flex items-center gap-1.5"
             title="Toggle dark mode"
@@ -284,7 +284,7 @@ function App() {
 
         {/* Chat area */}
         <div className="flex-1 min-h-0 flex justify-center px-4">
-          <div className="flex flex-col w-full max-w-4xl h-full border-2 border-slate-200 dark:border-slate-700 border-t-0 border-b-0 -b-lg overflow-hidden bg-white dark:bg-slate-900 mb-[-2px]">
+          <div className="flex flex-col w-full max-w-4xl h-full border-2 border-slate-200 dark:border-transparent border-t-0 border-b-0 -b-lg overflow-hidden bg-white dark:bg-slate-900 mb-[-2px]">
             <div
               ref={chatRef}
               className="flex-1 overflow-y-auto px-5 py-6 space-y-5"
@@ -303,11 +303,11 @@ function App() {
                   className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded px-4 py-2.5 border
+                    className={`max-w-[80%] rounded px-3 py-1.5 border
                       ${
                         message.role === "user"
-                          ? "bg-tropical-50 border-slate-200 text-slate-800 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200"
-                          : "bg-blue-50 border-tropical-300 text-slate-700 dark:bg-blue-950 dark:border-tropical-700 dark:text-slate-200"
+                          ? "bg-tropical-100 border-none text-slate-800 dark:bg-slate-800 dark:border-transparent dark:text-slate-200"
+                          : "bg-blue-100 border-none text-slate-700 dark:bg-blue-950 dark:border-transparent dark:text-slate-200"
                       }`}
                   >
                     {message.role === "user" ? (
@@ -328,7 +328,7 @@ function App() {
             </div>
 
             {/* Input */}
-            <div className="px-5 py-4 border-t border-slate-200 dark:border-slate-700">
+            <div className="px-5 py-4 border-t border-slate-200 dark:border-transparent">
               <form onSubmit={handleSubmit} className="flex flex-col gap-2">
                 <textarea
                   ref={textareaRef}
@@ -341,10 +341,10 @@ function App() {
                     }
                   }}
                   placeholder="Type a message..."
-                  rows="2"
-                  className="px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded bg-white dark:bg-slate-800
+                  rows="3"
+                  className="px-4 py-2.5 border border-slate-300 dark:border-transparent rounded bg-white dark:bg-slate-800
                     text-slate-800 dark:text-slate-100 placeholder-slate-400
-                    focus:border-slate-400 dark:focus:border-slate-500
+                    focus:border-slate-400 dark:focus:border-transparent
                     transition-colors duration-150"
                 />
                 <div className="flex items-center justify-between">
@@ -356,8 +356,8 @@ function App() {
                       <button
                         type="button"
                         onClick={handleCancel}
-                        className="px-3 py-1 font-mono text-xs text-red-400 border border-red-200 dark:border-red-800
-                          rounded hover:text-red-500 hover:border-red-300 dark:hover:border-red-700
+                        className="px-3 py-1 font-mono text-xs text-red-400 border border-red-200 dark:border-transparent
+                          rounded hover:text-red-500 hover:border-red-300 dark:hover:border-transparent
                           transition-colors duration-150 cursor-pointer"
                       >
                         cancel
@@ -366,12 +366,12 @@ function App() {
                     <button
                       type="submit"
                       disabled={isLoading || !prompt.trim()}
-                      className={`px-4 py-1 font-mono text-xs rounded
+                      className={`px-4 py-1 font-mono text-black rounded
                         transition-colors duration-150 cursor-pointer
                         ${
                           isLoading || !prompt.trim()
-                            ? "text-slate-300 dark:text-slate-600 border border-slate-200 dark:border-slate-700 cursor-not-allowed"
-                            : "text-teal-700 dark:text-teal-300 bg-tropical-50 dark:bg-teal-900 border border-teal-300 dark:border-teal-700 hover:bg-tropical-100 dark:hover:bg-teal-800 hover:border-teal-400 dark:hover:border-teal-600"
+                            ? "text-slate-300 dark:text-slate-600 border border-slate-200 dark:border-transparent cursor-not-allowed"
+                            : "text-teal-700 dark:text-teal-300 bg-tropical-50 dark:bg-teal-900 border border-teal-300 dark:border-transparent hover:bg-tropical-100 dark:hover:bg-teal-800 hover:border-teal-400 dark:hover:border-transparent"
                         }`}
                     >
                       send
