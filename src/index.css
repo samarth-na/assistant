@@ -1,23 +1,132 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+	/* Eggshell — warm cream base */
+	--color-eggshell-50: #fcf7e9;
+	--color-eggshell-100: #f8f0d3;
+	--color-eggshell-200: #f2e0a6;
+	--color-eggshell-300: #ebd17a;
+	--color-eggshell-400: #e4c14e;
+	--color-eggshell-500: #deb221;
+	--color-eggshell-600: #b18e1b;
+	--color-eggshell-700: #856b14;
+	--color-eggshell-800: #59470d;
+	--color-eggshell-900: #2c2407;
+	--color-eggshell-950: #1f1905;
+
+	/* Tea Green */
+	--color-tea-50: #f2f5ef;
+	--color-tea-100: #e6ecdf;
+	--color-tea-200: #cdd9bf;
+	--color-tea-300: #b4c69f;
+	--color-tea-400: #9bb380;
+	--color-tea-500: #829f60;
+	--color-tea-600: #68804d;
+	--color-tea-700: #4e6039;
+	--color-tea-800: #344026;
+	--color-tea-900: #1a2013;
+	--color-tea-950: #12160d;
+
+	/* Muted Teal — accent */
+	--color-teal-50: #eff6f2;
+	--color-teal-100: #deede6;
+	--color-teal-200: #bedacd;
+	--color-teal-300: #9dc8b4;
+	--color-teal-400: #7cb69b;
+	--color-teal-500: #5ca382;
+	--color-teal-600: #498368;
+	--color-teal-700: #37624e;
+	--color-teal-800: #254134;
+	--color-teal-900: #12211a;
+	--color-teal-950: #0d1712;
+
+	/* Tropical Teal */
+	--color-tropical-50: #eef6f6;
+	--color-tropical-100: #deedec;
+	--color-tropical-200: #bcdcda;
+	--color-tropical-300: #9bcac7;
+	--color-tropical-400: #79b9b4;
+	--color-tropical-500: #58a7a2;
+	--color-tropical-600: #468681;
+	--color-tropical-700: #356461;
+	--color-tropical-800: #234341;
+	--color-tropical-900: #122120;
+	--color-tropical-950: #0c1717;
+
+	/* Blue Slate — text */
+	--color-slate-50: #f1f2f3;
+	--color-slate-100: #e3e4e8;
+	--color-slate-200: #c7c9d1;
+	--color-slate-300: #acaeb9;
+	--color-slate-400: #9093a2;
+	--color-slate-500: #74798b;
+	--color-slate-600: #5d606f;
+	--color-slate-700: #464853;
+	--color-slate-800: #2e3038;
+	--color-slate-900: #17181c;
+	--color-slate-950: #101113;
+
+	/* Fonts */
+	--font-serif: Georgia, "Times New Roman", Times, serif;
+	--font-mono: "SF Mono", "Cascadia Code", "Fira Code", Menlo, Consolas,
+		"DejaVu Sans Mono", monospace;
+}
+
 @layer base {
-	/* Basic resets and defaults */
 	html {
-		@apply text-gray-950 bg-gray-100/50;
+		@apply h-full;
+		color: var(--color-slate-900);
+		background-color: #ffffff;
+	}
+
+	html.dark {
+		color: var(--color-slate-100);
+		background-color: var(--color-slate-950);
 	}
 
 	body {
-		@apply font-sans antialiased text-left align-middle;
+		@apply font-serif antialiased h-full m-0;
 	}
 
-	input::placeholder {
-		@apply text-gray-400;
+	#root {
+		@apply h-full;
+	}
+
+	input::placeholder,
+	textarea::placeholder {
+		color: var(--color-slate-400);
 	}
 
 	textarea {
-		@apply p-2 mb-10 w-full rounded-sm bg-white;
+		@apply p-3 w-full resize-none font-mono text-sm;
+		background: transparent;
 	}
+
 	textarea:focus {
 		outline: none;
+	}
+
+	/* Thin scrollbar */
+	::-webkit-scrollbar {
+		width: 5px;
+	}
+	::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	::-webkit-scrollbar-thumb {
+		background: var(--color-slate-200);
+		border-radius: 3px;
+	}
+	::-webkit-scrollbar-thumb:hover {
+		background: var(--color-slate-300);
+	}
+
+	html.dark ::-webkit-scrollbar-thumb {
+		background: var(--color-slate-700);
+	}
+	html.dark ::-webkit-scrollbar-thumb:hover {
+		background: var(--color-slate-600);
 	}
 }

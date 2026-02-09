@@ -4,7 +4,6 @@ const ChatSelector = ({ chat, setChat }) => {
   const chatOptions = [
     { model: "llama3.2:1b", name: "llama1B" },
     { model: "llama3.2:3b", name: "llama3B" },
-
     { model: "qwen2.5:1.5b", name: "qwen1B" },
     { model: "qwen2.5:3b", name: "qwen3B" },
     { model: "qwen2.5-coder:1.5b", name: "qwen-coder" },
@@ -17,14 +16,18 @@ const ChatSelector = ({ chat, setChat }) => {
   ];
 
   return (
-    <div className="flex flex-row gap-4 justify-center mt-2 mb-2">
+    <div className="flex flex-row gap-2 flex-wrap">
       {chatOptions.map(({ model, name }) => (
         <button
           key={model}
           onClick={() => setChat(model)}
-          className={` p-2 px-4 text-gray-900 bg-gray-50 cursor-pointer rounded-xl hover:bg-gray-200 ${
-            chat === model ? "bg-gray-200" : ""
-          }`}
+          className={`px-3.5 py-1.5 font-mono text-sm rounded cursor-pointer
+            transition-colors duration-150
+            ${
+              chat === model
+                ? "bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 border border-teal-300 dark:border-teal-700"
+                : "text-slate-500 dark:text-slate-400 border border-transparent hover:text-slate-700 dark:hover:text-slate-200 hover:border-slate-200 dark:hover:border-slate-600"
+            }`}
         >
           {name}
         </button>

@@ -83,4 +83,3 @@ npm run dev
 > up timers event on calendar reading the messages and such it needs a lot more
 > capabilities for that to which I hope I can accomplish I'm making this for
 > myself first and foremost not to turn this into an start-up
-
