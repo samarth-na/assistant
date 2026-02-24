@@ -20,13 +20,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
   onCancel,
 }) => {
   return (
-    <div className="px-4 py-3">
+    <div className="px-3 sm:px-4 py-3">
       <form onSubmit={onSubmit} className="max-w-3xl mx-auto">
         <div className="pill-input flex items-center gap-2">
           <button
             type="button"
             className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
-              rounded transition-colors duration-150"
+              rounded transition-colors duration-150 hidden sm:block"
             title="Attach file"
           >
             <svg
@@ -73,16 +73,16 @@ const ChatInput: React.FC<ChatInputProps> = ({
             <button
               type="submit"
               disabled={isLoading || !prompt.trim()}
-              className={`w-7 h-7 rounded-full flex items-center justify-center
+              className={`w-8 h-8 sm:w-7 sm:h-7 rounded-full flex items-center justify-center
                 transition-all duration-150
                 ${
                   isLoading || !prompt.trim()
                     ? "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
-                    : "bg-teal-600 hover:bg-teal-700 text-white"
+                    : "bg-cyan-600 hover:bg-cyan-700 text-white"
                 }`}
             >
               <svg
-                className="w-3.5 h-3.5"
+                className="w-4 h-4 sm:w-3.5 sm:h-3.5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"

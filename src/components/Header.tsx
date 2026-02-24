@@ -6,6 +6,7 @@ interface HeaderProps {
   onToggleDarkMode: () => void;
   onToggleSidebar: () => void;
   sidebarOpen: boolean;
+  isMobile?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -14,16 +15,17 @@ const Header: React.FC<HeaderProps> = ({
   onToggleDarkMode,
   onToggleSidebar,
   sidebarOpen,
+  isMobile = false,
 }) => {
   return (
-    <div className="flex items-center justify-between px-4 h-12">
-      {/* Left: Menu button (visible when sidebar is closed) */}
-      {!sidebarOpen && (
+    <div className="flex items-center justify-between px-3 sm:px-4 h-12">
+      {/* Left: Menu button (visible when sidebar is closed or on mobile) */}
+      {(!sidebarOpen || isMobile) && (
         <button
           onClick={onToggleSidebar}
           className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
-            cursor-pointer transition-colors duration-150 rounded"
-          title="Open sidebar"
+            cursor-pointer transition-colors duration-150 rounded flex-shrink-0"
+          title="Toggle sidebar"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -43,13 +45,13 @@ const Header: React.FC<HeaderProps> = ({
       )}
 
       {/* Center: Model selector */}
-      <div className="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors duration-150">
-        <span className="font-medium text-sm text-gray-700 dark:text-gray-300">
+      <div className="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors duration-150 flex-shrink-0">
+        <span className="font-medium text-xs sm:text-sm text-gray-700 dark:text-gray-300 truncate max-w-[150px] sm:max-w-none">
           {currentModel || "Select model"}
         </span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="w-3 h-3 text-gray-400"
+          className="w-3 h-3 text-gray-400 flex-shrink-0"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

@@ -13,7 +13,6 @@ import Sidebar from "./components/sidebar";
 import Header from "./components/Header";
 import ChatArea from "./components/ChatArea";
 import ChatInput from "./components/ChatInput";
-import ConnectScreen from "./components/ConnectScreen";
 import ollama from "ollama/browser";
 
 interface Message {
@@ -84,10 +83,8 @@ function App() {
   const [messages, dispatch] = useReducer(messagesReducer, []);
   const abortRef = useRef<AbortController | null>(null);
 
-  const [isConnected, setIsConnected] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const [chatHistory, setChatHistory] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState(newId);
   const [darkMode, setDarkMode] = useState(
@@ -103,29 +100,21 @@ function App() {
   }, [darkMode]);
 
   useEffect(() => {
-    setChatHistory(loadChats());
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+      if (window.innerWidth < 1024) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const handleConnect = useCallback(async () => {
-    setIsConnecting(true);
-    setConnectionError(null);
-    try {
-      const response = await fetch("http://localhost:11434/api/tags");
-      if (!response.ok) {
-        throw new Error("Failed to connect to Ollama");
-      }
-      const data = await response.json();
-      const models = data.models || [];
-      if (models.length > 0) {
-        setChat(models[0].name);
-      }
-      setIsConnected(true);
-    } catch (err) {
-      setConnectionError("Could not connect to Ollama. Is it running?");
-      console.error("Failed to connect to Ollama:", err);
-    } finally {
-      setIsConnecting(false);
-    }
+  useEffect(() => {
+    setChatHistory(loadChats());
   }, []);
 
   const handleNewChat = useCallback(() => {
@@ -249,7 +238,7 @@ function App() {
   };
 
   return (
-    <div className="h-full flex bg-white dark:bg-dark-bg">
+    <div className="h-full flex bg-white dark:bg-dark-bg overflow-hidden">
       <Sidebar
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen((o) => !o)}
@@ -262,6 +251,7 @@ function App() {
         onSelectModel={(model) => {
           setChat(model);
         }}
+        isMobile={isMobile}
       />
 
       <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden">
@@ -270,32 +260,26 @@ function App() {
           darkMode={darkMode}
           onToggleDarkMode={() => setDarkMode((d) => !d)}
           onToggleSidebar={() => setSidebarOpen((o) => !o)}
+          sidebarOpen={sidebarOpen}
+          isMobile={isMobile}
         />
 
-        {!isConnected ? (
-          <ConnectScreen
-            onConnect={handleConnect}
-            isConnecting={isConnecting}
-            error={connectionError}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <ChatArea
+            messages={messages}
+            isLoading={isLoading}
+            chatRef={chatRef}
           />
-        ) : (
-          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-            <ChatArea
-              messages={messages}
-              isLoading={isLoading}
-              chatRef={chatRef}
-            />
-            <ChatInput
-              prompt={prompt}
-              isLoading={isLoading}
-              textareaRef={textareaRef}
-              onSubmit={handleSubmit}
-              onChange={setPrompt}
-              onKeyDown={handleKeyDown}
-              onCancel={handleCancel}
-            />
-          </div>
-        )}
+          <ChatInput
+            prompt={prompt}
+            isLoading={isLoading}
+            textareaRef={textareaRef}
+            onSubmit={handleSubmit}
+            onChange={setPrompt}
+            onKeyDown={handleKeyDown}
+            onCancel={handleCancel}
+          />
+        </div>
       </div>
     </div>
   );
