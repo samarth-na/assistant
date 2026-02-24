@@ -1,8 +1,14 @@
 import React from "react";
 
-const ChatSelector = ({ chat, setChat }) => {
+interface ChatSelectorProps {
+  chat: string;
+  setChat: (chat: string) => void;
+}
+
+const ChatSelector: React.FC<ChatSelectorProps> = ({ chat, setChat }) => {
   const chatOptions = [
     { model: "llama3.2:1b", name: "llama1B" },
+    { model: "ministral-3:3b", name: "ministral3B" },
     { model: "llama3.2:3b", name: "llama3B" },
     { model: "qwen2.5:1.5b", name: "qwen1B" },
     { model: "qwen2.5:3b", name: "qwen3B" },

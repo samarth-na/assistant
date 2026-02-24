@@ -1,6 +1,22 @@
 import React from "react";
 
-const Sidebar = ({
+interface ChatItem {
+  id: string;
+  heading: string;
+  messages: Array<{ role: string; content: string }>;
+}
+
+interface SidebarProps {
+  isOpen: boolean;
+  onToggle: () => void;
+  chatHistory: ChatItem[];
+  activeChatId: string;
+  onSelectChat: (id: string) => void;
+  onNewChat: () => void;
+  onDeleteChat: (id: string) => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onToggle,
   chatHistory,

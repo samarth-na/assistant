@@ -1,10 +1,20 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import type { Components } from "react-markdown";
 
-const components = {
-  // Code blocks and inline code
-  code({ inline, className, children, ...props }) {
+interface MarkdownProps {
+  content: string;
+}
+
+interface CodeProps {
+  inline?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+}
+
+const components: Components = {
+  code({ inline, className, children, ...props }: CodeProps) {
     const lang = className?.replace("language-", "") || "";
 
     if (inline) {
@@ -39,12 +49,10 @@ const components = {
     );
   },
 
-  // Paragraphs
   p({ children }) {
     return <p className="my-2 first:mt-0 last:mb-0">{children}</p>;
   },
 
-  // Headers — serif, scaled down
   h1({ children }) {
     return (
       <h1 className="font-serif text-lg font-semibold text-slate-900 dark:text-slate-100 mt-5 mb-2 first:mt-0">
@@ -74,20 +82,16 @@ const components = {
     );
   },
 
-  // Lists
   ul({ children }) {
     return <ul className="my-2 pl-5 list-disc space-y-1">{children}</ul>;
   },
   ol({ children }) {
-    return (
-      <ol className="my-2 pl-5 list-decimal space-y-1">{children}</ol>
-    );
+    return <ol className="my-2 pl-5 list-decimal space-y-1">{children}</ol>;
   },
   li({ children }) {
     return <li className="text-slate-700 dark:text-slate-300">{children}</li>;
   },
 
-  // Links — teal accent
   a({ href, children }) {
     return (
       <a
@@ -101,7 +105,6 @@ const components = {
     );
   },
 
-  // Blockquote
   blockquote({ children }) {
     return (
       <blockquote className="my-3 pl-3 border-l-2 border-teal-300 dark:border-teal-700 text-slate-600 dark:text-slate-400 italic">
@@ -110,20 +113,21 @@ const components = {
     );
   },
 
-  // Horizontal rule
   hr() {
     return <hr className="my-4 border-slate-200 dark:border-slate-700" />;
   },
 
-  // Strong / em
   strong({ children }) {
-    return <strong className="font-semibold text-slate-900 dark:text-slate-100">{children}</strong>;
+    return (
+      <strong className="font-semibold text-slate-900 dark:text-slate-100">
+        {children}
+      </strong>
+    );
   },
   em({ children }) {
     return <em className="italic">{children}</em>;
   },
 
-  // Table
   table({ children }) {
     return (
       <div className="my-3 overflow-x-auto">
@@ -152,7 +156,7 @@ const components = {
   },
 };
 
-function Markdown({ content }) {
+const Markdown: React.FC<MarkdownProps> = ({ content }) => {
   return (
     <div className="font-mono text-sm leading-relaxed text-slate-700 dark:text-slate-300 markdown-body">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
@@ -160,6 +164,6 @@ function Markdown({ content }) {
       </ReactMarkdown>
     </div>
   );
-}
+};
 
 export default React.memo(Markdown);

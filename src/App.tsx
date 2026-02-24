@@ -5,24 +5,41 @@ import React, {
   useReducer,
   useCallback,
   useLayoutEffect,
+  FormEvent,
+  KeyboardEvent,
 } from "react";
 
-import ChatSelector from "./components/model.jsx";
-import Sidebar from "./components/sidebar.jsx";
-import Markdown from "./components/Markdown.jsx";
+import ChatSelector from "./components/model";
+import Sidebar from "./components/sidebar";
+import Markdown from "./components/Markdown";
 import ollama from "ollama/browser";
 
-// --- localStorage ---
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
 
-const loadChats = () => {
+interface Chat {
+  id: string;
+  heading: string;
+  messages: Message[];
+}
+
+type MessagesAction =
+  | { type: "ADD_MESSAGE"; payload: Message }
+  | { type: "UPDATE_LAST_MESSAGE"; payload: string }
+  | { type: "SET_MESSAGES"; payload: Message[] };
+
+const loadChats = (): Chat[] => {
   try {
-    return JSON.parse(localStorage.getItem("chats")) || [];
+    const stored = localStorage.getItem("chats");
+    return stored ? JSON.parse(stored) : [];
   } catch {
     return [];
   }
 };
 
-const saveChat = (chatObj) => {
+const saveChat = (chatObj: Chat): Chat[] => {
   const chats = loadChats();
   const idx = chats.findIndex((c) => c.id === chatObj.id);
   if (idx !== -1) chats[idx] = chatObj;
@@ -31,15 +48,13 @@ const saveChat = (chatObj) => {
   return chats;
 };
 
-const deleteChat = (id) => {
+const deleteChat = (id: string): Chat[] => {
   const chats = loadChats().filter((c) => c.id !== id);
   localStorage.setItem("chats", JSON.stringify(chats));
   return chats;
 };
 
-// --- Reducer ---
-
-const messagesReducer = (state, action) => {
+const messagesReducer = (state: Message[], action: MessagesAction): Message[] => {
   switch (action.type) {
     case "ADD_MESSAGE":
       return [...state, action.payload];
@@ -54,40 +69,36 @@ const messagesReducer = (state, action) => {
   }
 };
 
-const newId = () =>
+const newId = (): string =>
   Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
 const MemoizedChatSelector = React.memo(ChatSelector);
-
-// --- App ---
 
 function App() {
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [chat, setChat] = useState("qwen2.5:1.5b");
   const [messages, dispatch] = useReducer(messagesReducer, []);
-  const abortRef = useRef(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [chatHistory, setChatHistory] = useState([]);
+  const [chatHistory, setChatHistory] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState(newId);
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem("darkMode") === "true"
   );
 
-  const textareaRef = useRef(null);
-  const chatRef = useRef(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
-    localStorage.setItem("darkMode", darkMode);
+    localStorage.setItem("darkMode", String(darkMode));
   }, [darkMode]);
 
   useEffect(() => {
     setChatHistory(loadChats());
   }, []);
-
-  // --- Actions ---
 
   const handleNewChat = useCallback(() => {
     setActiveChatId(newId());
@@ -95,7 +106,7 @@ function App() {
     setPrompt("");
   }, []);
 
-  const handleSelectChat = useCallback((id) => {
+  const handleSelectChat = useCallback((id: string) => {
     const found = loadChats().find((c) => c.id === id);
     if (found) {
       setActiveChatId(found.id);
@@ -104,7 +115,7 @@ function App() {
   }, []);
 
   const handleDeleteChat = useCallback(
-    (id) => {
+    (id: string) => {
       const updated = deleteChat(id);
       setChatHistory(updated);
       if (activeChatId === id) handleNewChat();
@@ -112,16 +123,14 @@ function App() {
     [activeChatId, handleNewChat]
   );
 
-  // --- Submit ---
-
   const handleSubmit = useCallback(
-    async (e) => {
+    async (e?: FormEvent) => {
       if (e) e.preventDefault();
       if (!prompt.trim()) return;
 
       const currentPrompt = prompt;
-      const userMsg = { role: "user", content: currentPrompt };
-      const conversation = [...messages, userMsg];
+      const userMsg: Message = { role: "user", content: currentPrompt };
+      const conversation: Message[] = [...messages, userMsg];
 
       setIsLoading(true);
       dispatch({ type: "ADD_MESSAGE", payload: userMsg });
@@ -131,7 +140,8 @@ function App() {
       });
       setPrompt("");
 
-      abortRef.current = new AbortController();
+      const controller = new AbortController();
+      abortRef.current = controller;
 
       let assistantText = "";
       try {
@@ -139,15 +149,15 @@ function App() {
           model: chat,
           messages: conversation,
           stream: true,
-          signal: abortRef.current.signal,
         });
 
         for await (const part of response) {
+          if (controller.signal.aborted) break;
           assistantText += part.message?.content || "";
           dispatch({ type: "UPDATE_LAST_MESSAGE", payload: assistantText });
         }
-      } catch (error) {
-        if (error.name !== "AbortError") {
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name !== "AbortError") {
           console.error("Error:", error);
           dispatch({
             type: "UPDATE_LAST_MESSAGE",
@@ -171,7 +181,7 @@ function App() {
         setChatHistory(updated);
       }
     },
-    [messages, chat, prompt, activeChatId]
+    [messages, chat, activeChatId]
   );
 
   const handleCancel = () => {
@@ -183,8 +193,9 @@ function App() {
   };
 
   useEffect(() => {
-    const onKey = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "c" && isLoading) {
+    const onKey = (e: Event) => {
+      const ke = e as unknown as KeyboardEvent;
+      if ((ke.ctrlKey || ke.metaKey) && ke.key === "c" && isLoading) {
         e.preventDefault();
         handleCancel();
       }
@@ -194,11 +205,20 @@ function App() {
   }, [isLoading]);
 
   useLayoutEffect(() => {
-    chatRef.current?.scrollTo({
-      top: chatRef.current.scrollHeight,
-      behavior: "smooth",
-    });
+    if (chatRef.current) {
+      chatRef.current.scrollTo({
+        top: chatRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   }, [messages]);
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
 
   return (
     <div className="h-full flex">
@@ -212,9 +232,7 @@ function App() {
         onDeleteChat={handleDeleteChat}
       />
 
-      {/* Main content */}
       <div className="flex-1 min-w-0 flex flex-col h-full">
-        {/* Top bar */}
         <div className="flex items-center gap-4 px-5 h-12 border-b border-slate-300 dark:border-transparent">
           <button
             onClick={() => setSidebarOpen((o) => !o)}
@@ -239,7 +257,6 @@ function App() {
 
           <MemoizedChatSelector chat={chat} setChat={setChat} />
 
-          {/* Dark mode toggle */}
           <button
             onClick={() => setDarkMode((d) => !d)}
             className="ml-auto pl-4 border-l border-slate-200 dark:border-transparent
@@ -282,7 +299,6 @@ function App() {
           </button>
         </div>
 
-        {/* Chat area */}
         <div className="flex-1 min-h-0 flex justify-center px-4">
           <div className="flex flex-col w-full max-w-4xl h-full border-1 border-slate-300 dark:border-transparent border-t-0 border-b-0 -b-lg overflow-hidden bg-white dark:bg-slate-900 mb-[-2px]">
             <div
@@ -297,7 +313,7 @@ function App() {
                 </div>
               )}
 
-              {messages.map((message, index) => (
+              {messages.map((message: Message, index: number) => (
                 <div
                   key={index}
                   className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
@@ -327,21 +343,15 @@ function App() {
               ))}
             </div>
 
-            {/* Input */}
             <div className="px-5 py-4 border-t border-slate-300 dark:border-transparent">
               <form onSubmit={handleSubmit} className="flex flex-col gap-2">
                 <textarea
                   ref={textareaRef}
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSubmit();
-                    }
-                  }}
+                  onKeyDown={handleKeyDown}
                   placeholder="Type a message..."
-                  rows="3"
+                  rows={3}
                   className="px-4 py-2.5 border border-slate-300 dark:border-transparent rounded bg-white dark:bg-slate-800
                     text-slate-800 dark:text-slate-100 placeholder-slate-400
                     focus:border-slate-400 dark:focus:border-transparent
