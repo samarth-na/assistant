@@ -45,6 +45,76 @@ npm run dev
 
 ---
 
+## Deployment to Cloudflare Pages via GitHub
+
+### Prerequisites
+
+- A [Cloudflare account](https://dash.cloudflare.com/sign-up)
+- A [GitHub account](https://github.com/signup)
+- Your code pushed to a GitHub repository
+
+### Option 1: Direct Deployment via Cloudflare Dashboard (Recommended)
+
+1. **Push your code to GitHub**
+   ```bash
+   git add .
+   git commit -m "Initial commit"
+   git branch -M main
+   git remote add origin https://github.com/YOUR_USERNAME/ollama-web-ui.git
+   git push -u origin main
+   ```
+
+2. **Go to Cloudflare Dashboard**
+   - Visit [Cloudflare Dashboard](https://dash.cloudflare.com/)
+   - Navigate to **Workers & Pages** > **Create Application**
+   - Select **Pages** tab
+   - Click **Connect to Git**
+
+3. **Connect your repository**
+   - Select your GitHub account and repository
+   - Configure build settings:
+     - **Production branch**: `main`
+     - **Build command**: `npm run build`
+     - **Build output directory**: `dist`
+   - Click **Save and Deploy**
+
+4. **Configure environment variables (if needed)**
+   - In your Cloudflare Pages project, go to **Settings** > **Environment Variables**
+   - Add any required variables for your Ollama backend
+
+### Option 2: GitHub Actions Deployment
+
+1. **Get Cloudflare credentials**
+   - Go to [Cloudflare Dashboard](https://dash.cloudflare.com/)
+   - Navigate to **Profile** > **API Tokens**
+   - Create a new token with **Edit Cloudflare Workers** permissions
+   - Copy your **Account ID** from the right sidebar
+
+2. **Add secrets to GitHub**
+   - Go to your GitHub repository
+   - Navigate to **Settings** > **Secrets and variables** > **Actions**
+   - Add these repository secrets:
+     - `CLOUDFLARE_API_TOKEN`: Your Cloudflare API token
+     - `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare account ID
+
+3. **Deploy automatically**
+   - The GitHub Actions workflow will automatically deploy on every push to `main`
+   - View deployment status in **Actions** tab
+
+### Accessing your deployed app
+
+- Your app will be available at `https://<project-name>.pages.dev`
+- You can add a custom domain in Cloudflare Dashboard
+
+### Important Notes
+
+> ⚠️ **Ollama Backend**: This UI connects to a local Ollama instance (`http://localhost:11434`). For production deployment:
+> - Deploy Ollama on a server with public HTTPS access
+> - Update the API endpoint in the code to point to your remote Ollama server
+> - Configure CORS on your Ollama server to allow requests from your Cloudflare Pages domain
+
+---
+
 ## penging
 
 - [ ] add a real proper readme (will add readme later :p)

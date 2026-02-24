@@ -1,0 +1,13 @@
+# Cloudflare Pages Configuration
+# This file configures Cloudflare Pages build and deployment settings
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Environment variables (set these in Cloudflare Dashboard or GitHub Actions)
+# OLLAMA_HOST - Your Ollama server URL (e.g., https://your-ollama-server.com)
+
+# Optional: Configure caching
+[build.environment]
+  NODE_VERSION = "20"

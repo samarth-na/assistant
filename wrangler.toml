@@ -1,0 +1,10 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "assistant"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "./dist"
+
+# Automatically place your workdir in an isolates boundary
+# This will speed up cold starts, but can be incompatible with some libraries
+# [observability]
+# enabled = true
+# head_sampling_rate = 1 # optional. default = 1.
