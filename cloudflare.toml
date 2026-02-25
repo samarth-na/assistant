@@ -2,5 +2,5 @@
 # This file configures Cloudflare Pages build and deployment settings
 
 [build]
-  command = "bun run build"
+  command = "bun install && bun run build"
   publish = "dist"
